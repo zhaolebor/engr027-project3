@@ -57,7 +57,10 @@ Kinv = numpy.linalg.inv(K)
 w = cam_image.shape[1]
 h = cam_image.shape[0]
 delta_min = b*f/z_max
+
+# explicit for loop version
 points = []
+"""
 for i in range(h):
     for j in range(w):
         q = numpy.array([j, i, 1])
@@ -69,11 +72,52 @@ for i in range(h):
         if (i==120 and j==40) or (i==300 and j==40) or (i==240 and j==320):
             print z
             print i,j, actual_point
+"""
+# vectorized version 
+
+#create the grid
+Xrange = numpy.linspace(0, w-1, w).astype('float32')
+Yrange = numpy.linspace(0,h-1,h).astype('float32')
+
+X,Y = numpy.meshgrid(Xrange, Yrange)
+
+# initialize an empty array for Z
+Z = numpy.empty_like(X)
+#put it together 
+xyz = numpy.hstack( ( X.reshape((-1,1)),
+                        Y.reshape((-1,1)),
+                        Z.reshape((-1,1))))
 
 
-numpy.savez('starter.npz',points)
+xyz = numpy.reshape(xyz,(w,h,3))
+
+
+
+#print xyz
+
+
+
+
+
+
+
+#numpy.savez('starter.npz',points)
 
 # Pop up the disparity image.
 cv2.imshow('Disparity', disparity/disparity.max())
 while fixKeyCode(cv2.waitKey(5)) < 0:
     pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
