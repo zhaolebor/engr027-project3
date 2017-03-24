@@ -46,6 +46,11 @@ matcher = cv2.StereoSGBM_create(min_disparity,
 # actual disparities.
 disparity = matcher.compute(cam_image, proj_image) / 16.0
 
+# Pop up the disparity image.
+#cv2.imshow('Disparity', disparity/disparity.max())
+#while fixKeyCode(cv2.waitKey(5)) < 0:
+#    pass
+
 f = 600
 u0 = 320
 v0 = 240
@@ -93,16 +98,27 @@ xyz = numpy.transpose(xyz)
 new_xyz = numpy.dot(Kinv, xyz)
 X = new_xyz[0]
 Y = new_xyz[1]
+Z = new_xyz[2]
+new_xyz = numpy.transpose(new_xyz)
 
-mask = numpy.greater(disparity, delta_min)
-Z[mask] = b*f/disparity[mask]
-Z = Z.reshape((-1,1))
-X[mask] = X*Z
-Y[mask] = Y*Z
+disparity = disparity.reshape((-1,1))
+print Z.shape
+print disparity.shape
+#mask = numpy.greater(disparity, delta_min)
+Z = b*f/disparity
+#Z = Z.reshape((-1,1))
+#X[mask] = X*Z
+#Y[mask] = Y*Z
+final_xyz = numpy.zeros_like(new_xyz)
+final_xyz = numpy.multiply(new_xyz,Z)
+Z = numpy.transpose(final_xyz)[2]
+mask = numpy.less(Z, z_max)
 
-final_xyz = numpy.hstack( ( X[mask].reshape((-1,1)),
-                            Y[mask].reshape((-1,1)),
-                            Z[mask].reshape((-1,1)) ) )
+final_xyz[mask] = final_xyz[]
+
+#final_xyz = numpy.hstack( ( X[mask].reshape((-1,1)),
+#                            Y[mask].reshape((-1,1)),
+#                            Z[mask].reshape((-1,1)) ) )
 
 print final_xyz, final_xyz.shape
 
@@ -119,7 +135,4 @@ print final_xyz, final_xyz.shape
 
 #numpy.savez('starter.npz',points)
 
-# Pop up the disparity image.
-cv2.imshow('Disparity', disparity/disparity.max())
-while fixKeyCode(cv2.waitKey(5)) < 0:
-    pass
+
