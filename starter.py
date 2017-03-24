@@ -104,6 +104,7 @@ new_xyz = numpy.dot(Kinv, xyz)
 Z = new_xyz[2]
 new_xyz = numpy.transpose(new_xyz)
 
+# apply a mask to both disparity and points array
 disparity = disparity.reshape((-1,1))
 # disparity is (307200,1)
 mask = numpy.greater(disparity, delta_min).reshape(-1,)
@@ -111,6 +112,8 @@ mask = numpy.greater(disparity, delta_min).reshape(-1,)
 Z = b*f/disparity[mask].reshape((-1,1))
 # Z is (297547,1)
 # new_xyz[mask] is (297547,3)
+
+# Rescale the points
 final_xyz = numpy.multiply(new_xyz[mask], Z)
 
 #print final_xyz, final_xyz.shape
