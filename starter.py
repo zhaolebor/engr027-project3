@@ -63,8 +63,9 @@ h = cam_image.shape[0]
 delta_min = b*f/z_max
 
 # explicit for loop version
+'''
 points = []
-"""
+
 for i in range(h):
     for j in range(w):
         q = numpy.array([j, i, 1])
@@ -73,10 +74,15 @@ for i in range(h):
             z = b*f/disparity[i][j]
             actual_point = new_point/new_point[2]*z
             points.append(actual_point)
-        if (i==120 and j==40) or (i==300 and j==40) or (i==240 and j==320):
-            print z
-            print i,j, actual_point
-"""
+        # Check correctness
+        #if (i==120 and j==40) or (i==300 and j==40) or (i==240 and j==320):
+        #    print z
+        #    print i,j, actual_point
+points = numpy.array(points)
+#print points, points.shape
+numpy.savez('starter.npz',points)
+
+'''
 # vectorized version
 
 #create the grid
@@ -88,7 +94,6 @@ X,Y = numpy.meshgrid(Xrange, Yrange)
 # initialize an empty array for Z
 Z = numpy.ones_like(X)
 
-
 #put it together
 xyz = numpy.hstack( ( X.reshape((-1,1)),
                       Y.reshape((-1,1)),
@@ -96,43 +101,19 @@ xyz = numpy.hstack( ( X.reshape((-1,1)),
 
 xyz = numpy.transpose(xyz)
 new_xyz = numpy.dot(Kinv, xyz)
-X = new_xyz[0]
-Y = new_xyz[1]
 Z = new_xyz[2]
 new_xyz = numpy.transpose(new_xyz)
 
 disparity = disparity.reshape((-1,1))
-print Z.shape
-print disparity.shape
-#mask = numpy.greater(disparity, delta_min)
-Z = b*f/disparity
-#Z = Z.reshape((-1,1))
-#X[mask] = X*Z
-#Y[mask] = Y*Z
-final_xyz = numpy.zeros_like(new_xyz)
-final_xyz = numpy.multiply(new_xyz,Z)
-Z = numpy.transpose(final_xyz)[2]
-mask = numpy.less(Z, z_max)
+# disparity is (307200,1)
+mask = numpy.greater(disparity, delta_min).reshape(-1,)
+# mask is (307200, )
+Z = b*f/disparity[mask].reshape((-1,1))
+# Z is (297547,1)
+# new_xyz[mask] is (297547,3)
+final_xyz = numpy.multiply(new_xyz[mask], Z)
 
-final_xyz[mask] = final_xyz[]
+#print final_xyz, final_xyz.shape
+print numpy.array_equal(points, final_xyz)
 
-#final_xyz = numpy.hstack( ( X[mask].reshape((-1,1)),
-#                            Y[mask].reshape((-1,1)),
-#                            Z[mask].reshape((-1,1)) ) )
-
-print final_xyz, final_xyz.shape
-
-
-
-
-#print xyz
-
-
-
-
-
-
-
-#numpy.savez('starter.npz',points)
-
-
+numpy.savez('starter.npz',final_xyz)
