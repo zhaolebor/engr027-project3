@@ -45,7 +45,6 @@ matcher = cv2.StereoSGBM_create(min_disparity,
 # fixed-point format and needs to be divided by 16 to convert to
 # actual disparities.
 disparity = matcher.compute(cam_image, proj_image) / 16.0
-print disparity[300][40]
 
 f = 600
 u0 = 320
@@ -73,7 +72,7 @@ for i in range(h):
             print z
             print i,j, actual_point
 """
-# vectorized version 
+# vectorized version
 
 #create the grid
 Xrange = numpy.linspace(0, w-1, w).astype('float32')
@@ -82,14 +81,31 @@ Yrange = numpy.linspace(0,h-1,h).astype('float32')
 X,Y = numpy.meshgrid(Xrange, Yrange)
 
 # initialize an empty array for Z
-Z = numpy.empty_like(X)
-#put it together 
+Z = numpy.ones_like(X)
+
+
+#put it together
 xyz = numpy.hstack( ( X.reshape((-1,1)),
-                        Y.reshape((-1,1)),
-                        Z.reshape((-1,1))))
+                      Y.reshape((-1,1)),
+                      Z.reshape((-1,1))))
 
+xyz = numpy.transpose(xyz)
+new_xyz = numpy.dot(Kinv, xyz)
+X = new_xyz[0]
+Y = new_xyz[1]
 
-xyz = numpy.reshape(xyz,(w,h,3))
+mask = numpy.greater(disparity, delta_min)
+Z[mask] = b*f/disparity[mask]
+Z = Z.reshape((-1,1))
+X[mask] = X*Z
+Y[mask] = Y*Z
+
+final_xyz = numpy.hstack( ( X[mask].reshape((-1,1)),
+                            Y[mask].reshape((-1,1)),
+                            Z[mask].reshape((-1,1)) ) )
+
+print final_xyz, final_xyz.shape
+
 
 
 
@@ -107,17 +123,3 @@ xyz = numpy.reshape(xyz,(w,h,3))
 cv2.imshow('Disparity', disparity/disparity.max())
 while fixKeyCode(cv2.waitKey(5)) < 0:
     pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
