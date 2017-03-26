@@ -4,11 +4,14 @@ import cv2
 import numpy
 import sys
 import os
+import time
 
 ###############################################################################
 def fixKeyCode(code):
     return numpy.uint8(code).view(numpy.int8)
 ###############################################################################
+# a timer to measure performance
+start_time = time.time()
 
 # Get command line arguments or print usage and exit
 if len(sys.argv) > 2:
@@ -79,10 +82,9 @@ for i in range(h):
         #    print z
         #    print i,j, actual_point
 points = numpy.array(points)
-#print points, points.shape
 numpy.savez('starter.npz',points)
-
 '''
+
 # vectorized version
 
 #create the grid
@@ -116,7 +118,9 @@ Z = b*f/disparity[mask].reshape((-1,1))
 # Rescale the points
 final_xyz = numpy.multiply(new_xyz[mask], Z)
 
-#print final_xyz, final_xyz.shape
-print numpy.array_equal(points, final_xyz)
+#print numpy.array_equal(points, final_xyz)
 
 numpy.savez('starter.npz',final_xyz)
+
+# measure time performance
+print("--- %s seconds ---" % (time.time() - start_time))
